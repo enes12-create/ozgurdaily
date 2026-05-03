@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glass OS</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --glass-bg: rgba(255,255,255,0.07);
+    --glass-border: rgba(255,255,255,0.13);
+    --glass-hover: rgba(255,255,255,0.12);
+    --accent: #60a5fa;
+    --accent2: #f472b6;
+    --accent3: #34d399;
+    --text-primary: rgba(255,255,255,0.92);
+    --text-secondary: rgba(255,255,255,0.45);
+    --text-tertiary: rgba(255,255,255,0.25);
+    --radius-sm: 12px;
+    --radius-md: 18px;
+    --radius-lg: 26px;
+    --sidebar-w: 80px;
+  }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #06080f;
+    color: var(--text-primary);
+    display: flex;
+  }
+
+  /* Animated background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 70% 60% at 20% 10%, rgba(59,130,246,0.18) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 50% at 80% 80%, rgba(139,92,246,0.14) 0%, transparent 55%),
+      radial-gradient(ellipse 40% 40% at 60% 20%, rgba(52,211,153,0.08) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ─── SIDEBAR ─── */
+  .sidebar {
+    position: relative;
+    z-index: 10;
+    width: var(--sidebar-w);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 28px 0;
+    gap: 10px;
+    border-right: 0.5px solid var(--glass-border);
+    background: rgba(255,255,255,0.03);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+  }
+
+  .sidebar-logo {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 18px;
+    flex-shrink: 0;
+  }
+
+  .sidebar-logo svg { width: 18px; height: 18px; fill: white; }
+
+  .nav-items {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+  }
+
+  .icon-btn {
+    width: 46px;
+    height: 46px;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+    position: relative;
+    border: none;
+    outline: none;
+  }
+
+  .icon-btn svg {
+    width: 20px;
+    height: 20px;
+    stroke: var(--text-secondary);
+    fill: none;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: stroke 0.2s;
+  }
+
+  .icon-btn:hover {
+    background: var(--glass-hover);
+    transform: scale(1.04);
+  }
+
+  .icon-btn:hover svg { stroke: var(--text-primary); }
+
+  .icon-btn.active {
+    background: rgba(96,165,250,0.15);
+  }
+
+  .icon-btn.active svg { stroke: var(--accent); }
+
+  .icon-btn.active::before {
+    content: '';
+    position: absolute;
+    left: -1px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 22px;
+    border-radius: 0 3px 3px 0;
+    background: var(--accent);
+  }
+
+  .sidebar-bottom {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f472b6, #fb923c);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  /* ─── MAIN ─── */
+  .main {
+    flex: 1;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .section {
+    display: none;
+    flex-direction: column;
+    gap: 20px;
+    height: 100%;
+    animation: fadeIn 0.28s ease;
+  }
+
+  .section.active { display: flex; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ─── GLASS CARD ─── */
+  .glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    border-radius: var(--radius-lg);
+    border: 0.5px solid var(--glass-border);
+    padding: 24px 26px;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .section-title {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-size: 11px;
+    margin-bottom: 18px;
+  }
+
+  /* ─── CALENDAR ─── */
+  .calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 22px;
+  }
+
+  .month-title {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  .nav-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: var(--glass-bg);
+    border: 0.5px solid var(--glass-border);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font-size: 14px;
+    transition: background 0.2s, color 0.2s;
+  }
+
+  .nav-btn:hover {
+    background: var(--glass-hover);
+    color: var(--text-primary);
+  }
+
+  .weekday-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .weekday-label {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 4px 0;
+  }
+
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+  }
+
+  .day {
+    aspect-ratio: 1;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+  }
+
+  .day:hover {
+    background: rgba(255,255,255,0.09);
+    transform: scale(1.08);
+  }
+
+  .day.empty { cursor: default; }
+  .day.empty:hover { background: none; transform: none; }
+
+  .day.today {
+    background: var(--accent);
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .day.today:hover { background: #3b82f6; }
+
+  /* ─── NOTES ─── */
+  .notes-wrap {
+    display: flex;
+    flex-direction: column;
+    height: calc(100% - 36px);
+  }
+
+  .note-area {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 15px;
+    line-height: 1.75;
+    resize: none;
+    width: 100%;
+    caret-color: var(--accent);
+  }
+
+  .note-area::placeholder { color: var(--text-tertiary); }
+
+  .note-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 0.5px solid var(--glass-border);
+  }
+
+  .note-counter {
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+
+  /* ─── NEWS ─── */
+  .news-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto;
+    height: calc(100% - 36px);
+    scrollbar-width: none;
+  }
+
+  .news-list::-webkit-scrollbar { display: none; }
+
+  .news-card {
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+    background: rgba(255,255,255,0.04);
+    border: 0.5px solid var(--glass-border);
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .news-card:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.2);
+  }
+
+  .news-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+    margin-top: 5px;
+  }
+
+  .news-title {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--text-primary);
+  }
+
+  .news-source {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-top: 3px;
+    letter-spacing: 0.03em;
+  }
+
+  .news-loading {
+    color: var(--text-tertiary);
+    font-size: 13px;
+    padding: 20px 0;
+    text-align: center;
+  }
+
+  /* ─── RINGS / PROGRESS ─── */
+  .rings-grid {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 36px;
+    margin-top: 10px;
+  }
+
+  .ring-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .ring-svg-wrap {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    width: 120px;
+    height: 120px;
+  }
+
+  .ring-svg-wrap svg {
+    width: 120px;
+    height: 120px;
+    transform: rotate(-90deg);
+  }
+
+  .ring-bg-circle {
+    fill: none;
+    stroke: rgba(255,255,255,0.08);
+    stroke-width: 10;
+  }
+
+  .ring-progress {
+    fill: none;
+    stroke-width: 10;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.35s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .ring-label {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+
+  .ring-pct {
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  .ring-name {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-top: 2px;
+  }
+
+  .ring-name-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+
+  .ring-slider {
+    width: 120px;
+    accent-color: var(--accent);
+  }
+
+  .avg-bar-wrap {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 0.5px solid var(--glass-border);
+    text-align: center;
+  }
+
+  .avg-label {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+  }
+
+  .avg-value {
+    font-size: 32px;
+    font-weight: 300;
+    color: var(--text-primary);
+  }
+
+  .avg-value span {
+    font-size: 16px;
+    color: var(--text-secondary);
+    font-weight: 400;
+  }
+</style>
+</head>
+<body>
+
+<!-- ─── SIDEBAR ─── -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+  </div>
+
+  <div class="nav-items">
+    <button class="icon-btn active" onclick="show('calendar', this)" title="Kalender">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="3"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>
+    </button>
+    <button class="icon-btn" onclick="show('notes', this)" title="Notizen">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    </button>
+    <button class="icon-btn" onclick="show('news', this)" title="Nachrichten">
+      <svg viewBox="0 0 24 24"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 0-2-2zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8M18 18h-8M18 10h-8"/></svg>
+    </button>
+    <button class="icon-btn" onclick="show('rings', this)" title="Fortschritt">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+    </button>
+  </div>
+
+  <div class="sidebar-bottom">
+    <div class="avatar">JS</div>
+  </div>
+</nav>
+
+<!-- ─── MAIN ─── -->
+<main class="main">
+
+  <!-- Kalender -->
+  <div id="calendar" class="section active">
+    <div class="glass">
+      <div class="calendar-header">
+        <button class="nav-btn" onclick="changeMonth(-1)">&#8249;</button>
+        <span class="month-title" id="monthTitle"></span>
+        <button class="nav-btn" onclick="changeMonth(1)">&#8250;</button>
+      </div>
+      <div class="weekday-row">
+        <div class="weekday-label">Mo</div>
+        <div class="weekday-label">Di</div>
+        <div class="weekday-label">Mi</div>
+        <div class="weekday-label">Do</div>
+        <div class="weekday-label">Fr</div>
+        <div class="weekday-label">Sa</div>
+        <div class="weekday-label">So</div>
+      </div>
+      <div class="calendar-grid" id="calendarGrid"></div>
+    </div>
+  </div>
+
+  <!-- Notizen -->
+  <div id="notes" class="section">
+    <div class="glass">
+      <div class="section-title">Notizen</div>
+      <div class="notes-wrap">
+        <textarea class="note-area" id="noteArea" placeholder="Gedanken aufschreiben…"></textarea>
+        <div class="note-footer">
+          <span class="note-counter" id="noteCounter">0 Zeichen</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- News -->
+  <div id="news" class="section">
+    <div class="glass">
+      <div class="section-title">Nachrichten</div>
+      <div class="news-list" id="newsList">
+        <div class="news-loading">Lädt…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ringe / Fortschritt -->
+  <div id="rings" class="section">
+    <div class="glass">
+      <div class="section-title">Fortschritt</div>
+
+      <div class="rings-grid" id="ringsGrid"></div>
+
+      <div class="avg-bar-wrap">
+        <div class="avg-label">Durchschnitt</div>
+        <div class="avg-value" id="avgValue">0<span>%</span></div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+/* ─── NAVIGATION ─── */
+function show(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.icon-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (btn) btn.classList.add('active');
+}
+
+/* ─── CALENDAR ─── */
+let calDate = new Date();
+
+function renderCalendar() {
+  const grid = document.getElementById('calendarGrid');
+  grid.innerHTML = '';
+  const year = calDate.getFullYear();
+  const month = calDate.getMonth();
+
+  document.getElementById('monthTitle').textContent =
+    calDate.toLocaleString('de-DE', { month: 'long', year: 'numeric' });
+
+  const today = new Date();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  // Get weekday of 1st (0=Sun…6=Sat), convert to Mon-first (0=Mon…6=Sun)
+  let firstDay = new Date(year, month, 1).getDay();
+  firstDay = (firstDay + 6) % 7; // Monday = 0
+
+  // Empty cells before 1st
+  for (let i = 0; i < firstDay; i++) {
+    const empty = document.createElement('div');
+    empty.className = 'day empty';
+    grid.appendChild(empty);
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const el = document.createElement('div');
+    el.className = 'day';
+    el.textContent = d;
+    const isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+    if (isToday) el.classList.add('today');
+    grid.appendChild(el);
+  }
+}
+
+function changeMonth(v) {
+  calDate = new Date(calDate.getFullYear(), calDate.getMonth() + v, 1);
+  renderCalendar();
+}
+
+renderCalendar();
+
+/* ─── NOTES ─── */
+const noteArea = document.getElementById('noteArea');
+const noteCounter = document.getElementById('noteCounter');
+
+noteArea.value = localStorage.getItem('glassNote') || '';
+updateCounter();
+
+noteArea.addEventListener('input', () => {
+  localStorage.setItem('glassNote', noteArea.value);
+  updateCounter();
+});
+
+function updateCounter() {
+  const len = noteArea.value.length;
+  noteCounter.textContent = len === 1 ? '1 Zeichen' : len + ' Zeichen';
+}
+
+/* ─── NEWS ─── */
+async function loadNews() {
+  const container = document.getElementById('newsList');
+  try {
+    const proxy = 'https://api.allorigins.win/raw?url=';
+    const feed  = encodeURIComponent('https://rss.dw.com/xml/rss-de-top');
+    const res   = await fetch(proxy + feed, { signal: AbortSignal.timeout(8000) });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text  = await res.text();
+    const xml   = new DOMParser().parseFromString(text, 'text/xml');
+    const items = Array.from(xml.querySelectorAll('item')).slice(0, 7);
+
+    if (!items.length) throw new Error('Keine Meldungen');
+
+    container.innerHTML = '';
+    items.forEach(item => {
+      const title = item.querySelector('title')?.textContent?.trim() || '—';
+      const link  = item.querySelector('link')?.textContent?.trim() || '#';
+      const div   = document.createElement('div');
+      div.className = 'news-card';
+      div.innerHTML = `
+        <div class="news-dot"></div>
+        <div>
+          <div class="news-title">${escapeHtml(title)}</div>
+          <div class="news-source">Deutsche Welle</div>
+        </div>`;
+      div.addEventListener('click', () => window.open(link, '_blank'));
+      container.appendChild(div);
+    });
+  } catch (err) {
+    container.innerHTML = `<div class="news-loading">Nachrichten konnten nicht geladen werden.</div>`;
+    console.warn('News error:', err);
+  }
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+loadNews();
+
+/* ─── RINGS ─── */
+const ringData = [
+  { label: 'Aktivität', color: '#60a5fa', value: 0 },
+  { label: 'Energie',   color: '#f472b6', value: 0 },
+  { label: 'Fokus',     color: '#34d399', value: 0 },
+];
+
+const RADIUS = 46;
+const CIRC   = 2 * Math.PI * RADIUS;
+
+function buildRings() {
+  const grid = document.getElementById('ringsGrid');
+  grid.innerHTML = '';
+
+  ringData.forEach((ring, i) => {
+    const item = document.createElement('div');
+    item.className = 'ring-item';
+
+    const svgWrap = document.createElement('div');
+    svgWrap.className = 'ring-svg-wrap';
+    svgWrap.innerHTML = `
+      <svg viewBox="0 0 120 120">
+        <circle class="ring-bg-circle" cx="60" cy="60" r="${RADIUS}"/>
+        <circle class="ring-progress" id="rp${i}" cx="60" cy="60" r="${RADIUS}"
+          stroke="${ring.color}"
+          stroke-dasharray="${CIRC}"
+          stroke-dashoffset="${CIRC}"/>
+      </svg>
+      <div class="ring-label">
+        <div class="ring-pct" id="rpct${i}">0</div>
+        <div class="ring-name">%</div>
+      </div>`;
+
+    const nameLabel = document.createElement('div');
+    nameLabel.className = 'ring-name-label';
+    nameLabel.textContent = ring.label;
+
+    const slider = document.createElement('input');
+    slider.type  = 'range';
+    slider.min   = 0;
+    slider.max   = 100;
+    slider.step  = 1;
+    slider.value = 0;
+    slider.className = 'ring-slider';
+    slider.style.accentColor = ring.color;
+
+    slider.addEventListener('input', () => {
+      const v = parseInt(slider.value, 10);
+      ringData[i].value = v;
+      updateRing(i, v);
+      updateAvg();
+    });
+
+    item.appendChild(svgWrap);
+    item.appendChild(nameLabel);
+    item.appendChild(slider);
+    grid.appendChild(item);
+  });
+}
+
+function updateRing(i, pct) {
+  const offset = CIRC * (1 - pct / 100);
+  document.getElementById('rp' + i).style.strokeDashoffset = offset;
+  document.getElementById('rpct' + i).textContent = pct;
+}
+
+function updateAvg() {
+  const avg = ringData.reduce((a, r) => a + r.value, 0) / ringData.length;
+  document.getElementById('avgValue').innerHTML = Math.round(avg) + '<span>%</span>';
+}
+
+buildRings();
+</script>
+</body>
+</html>
